@@ -15,13 +15,13 @@ public class ColorPickerManagerSample : MonoBehaviour {
                 currentColor = renderer.material.color;
             }
 
-			UIColorPickerManager.Show(currentColor, OnSelectColor, OnFinish);
+			// UIColorPickerManager.Show(currentColor, OnSelectColor, OnFinish);
             // or
 			// UIColorPickerManager.Show(currentColor, OnSelectColor, OnFinish, OnEarlierIOSVersions);
             // or
 			// UIColorPickerManager.Show(currentColor, OnSelectRGBColor, OnFinish);
             // or
-			// UIColorPickerManager.Show(currentColor, OnSelectRGBColor, OnFinish, OnEarlierIOSVersions);
+			UIColorPickerManager.Show(currentColor, OnSelectRGBColor, OnFinish, OnEarlierIOSVersions);
 		}
 	}
 
@@ -42,7 +42,6 @@ public class ColorPickerManagerSample : MonoBehaviour {
 
     }
 
-    /*
     void OnSelectRGBColor(float red, float green, float blue, float alpha){
         // Debug.LogFormat("OnSelectColor. red: {0}, green: {1}, blue: {2}, alpha: {3}", red, green, blue, alpha);
 
@@ -58,11 +57,8 @@ public class ColorPickerManagerSample : MonoBehaviour {
             img.color = new Color(red, green, blue, alpha);
         }
     }
-    */
 
-    /*
     void OnEarlierIOSVersions(){
         // Fallback on earlier iOS versions
     }
-    */
 }

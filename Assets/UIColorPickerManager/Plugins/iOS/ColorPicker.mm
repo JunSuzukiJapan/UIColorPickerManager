@@ -53,6 +53,8 @@ PickerViewController* __pickerViewControllerSharedInstance = NULL;
 
 extern UIViewController* UnityGetGLViewController();
 
+UIColorPickerViewController* pickerController = nil;
+
 void _CallColorPickerPlugin (
     float red,
     float green,
@@ -69,7 +71,9 @@ void _CallColorPickerPlugin (
     vc.onFinish = onFinishCallbackCaller;
     
     if (@available(iOS 14.0, *)) {
-        UIColorPickerViewController* pickerController = [[UIColorPickerViewController alloc] init];
+        if(pickerController == nil){
+            pickerController = [[UIColorPickerViewController alloc] init];
+        }
         pickerController.delegate = vc;
         pickerController.selectedColor = [UIColor colorWithRed:red green:green blue:blue alpha:alpha];
         [parent presentViewController:pickerController animated:TRUE completion:nil];
