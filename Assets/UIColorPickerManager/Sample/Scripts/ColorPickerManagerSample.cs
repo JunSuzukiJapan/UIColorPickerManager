@@ -15,13 +15,16 @@ public class ColorPickerManagerSample : MonoBehaviour {
                 color = renderer.material.color;
             }
 
-			UIColorPickerManager.Show(color, OnSelectColor, OnFinish, OnEarlierIOSVersions);
+			// UIColorPickerManager.Show(color, OnSelectColor, OnFinish, OnEarlierIOSVersions);
+			UIColorPickerManager.Show(color, OnSelectColor, OnFinish);
             // or
-			// UIColorPickerManager.Show(color, OnSelectColor, OnFinish);
+			// UIColorPickerManager.Show(color, OnSelectRGBColor, OnFinish, OnEarlierIOSVersions);
+            // or
+			// UIColorPickerManager.Show(color, OnSelectRGBColor, OnFinish);
 		}
 	}
 
-    void OnSelectColor(float red, float green, float blue, float alpha){
+    void OnSelectRGBColor(float red, float green, float blue, float alpha){
         // Debug.LogFormat("OnSelectColor. red: {0}, green: {1}, blue: {2}, alpha: {3}", red, green, blue, alpha);
 
         if(obj != null){
@@ -34,6 +37,19 @@ public class ColorPickerManagerSample : MonoBehaviour {
 
         if(img != null){
             img.color = new Color(red, green, blue, alpha);
+        }
+    }
+
+    void OnSelectColor(Color color){
+        if(obj != null){
+            var renderer = obj.GetComponent<Renderer>();
+            if(renderer != null){
+                renderer.material.color = color;
+            }
+        }
+
+        if(img != null){
+            img.color = color;
         }
     }
 

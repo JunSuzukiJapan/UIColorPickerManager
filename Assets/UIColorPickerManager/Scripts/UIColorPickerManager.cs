@@ -3,13 +3,16 @@ using System.Runtime.InteropServices;
 using UnityEngine;
 
 public class UIColorPickerManager {
-    private static IntPtr gcHandleForSelectedCallback = IntPtr.Zero;
+    private static IntPtr gcHandleForRGBColorSelectedCallback = IntPtr.Zero;
+    private static IntPtr gcHandleForColorSelectedCallback = IntPtr.Zero;
     private static IntPtr gcHandleForOnFinishCallback = IntPtr.Zero;
     private static IntPtr gcHandleForOnEarlierIOSVersionsCallback = IntPtr.Zero;
 
 	// - colorPickerViewControllerDidSelectColor: 用コールバック
-	public delegate void OnColorSelectedCallback (float r, float g, float b, float a);
-	public delegate void OnColorSelectedCallbackCaller(float r, float g, float b, float a);
+	public delegate void OnRGBColorSelectedCallback (float r, float g, float b, float a);
+	public delegate void OnRGBColorSelectedCallbackCaller(float r, float g, float b, float a);
+    public delegate void OnColorSelectedCallback(Color color);
+    public delegate void OnColorSelectedCallbackCaller(float r, float g, float b, float a);
 
     // - colorPickerViewControllerDidFinish: 用コールバック
     public delegate void OnFinishCallback();
@@ -25,22 +28,84 @@ public class UIColorPickerManager {
         float green,
         float blue,
         float alpha,
-        OnColorSelectedCallbackCaller selectedColorCallbackCaller,
+        OnRGBColorSelectedCallbackCaller onRGBColorSelectedColorCallbackCaller,
         OnFinishCallbackCaller onFinishCallbackCaller,
         OnEarlierIOSVersionsCallbackCaller onEarlierIOSVersionsCallbackCaller);
 
 	public static void Show (
         Color color,
-        OnColorSelectedCallback colorSelectedCallback,
+        OnRGBColorSelectedCallback onRGBColorSelectedCallback,
         OnFinishCallback onFinishCallback,
         OnEarlierIOSVersionsCallback onEarlierIOSVersionsCallback)
     {
-        if(gcHandleForSelectedCallback != IntPtr.Zero || gcHandleForOnFinishCallback != IntPtr.Zero){
+        if(gcHandleForRGBColorSelectedCallback != IntPtr.Zero ||
+           gcHandleForColorSelectedCallback != IntPtr.Zero ||
+           gcHandleForOnFinishCallback != IntPtr.Zero)
+        {
             return;
         }
 
 		// コールバック関数をGCされないようにAllocしてハンドルを取得する。
-		gcHandleForSelectedCallback = (IntPtr)GCHandle.Alloc(colorSelectedCallback, GCHandleType.Normal);
+		gcHandleForRGBColorSelectedCallback = (IntPtr)GCHandle.Alloc(onRGBColorSelectedCallback, GCHandleType.Normal);
+		gcHandleForOnFinishCallback = (IntPtr)GCHandle.Alloc(onFinishCallback, GCHandleType.Normal);
+        gcHandleForOnEarlierIOSVersionsCallback = (IntPtr)GCHandle.Alloc(onEarlierIOSVersionsCallback, GCHandleType.Normal);
+
+		// 普通の引数 + コールバック関数のハンドル + コールバック関数を呼び出すためのstaticなメソッド
+		_CallColorPickerPlugin (
+            color.r,
+            color.g,
+            color.b,
+            color.a,
+            CallRGBColorSelectedCallback,
+            CallOnFinishCallback,
+            CallOnEarlierIOSVersionsCallback);
+	}
+
+	public static void Show (
+        Color color,
+        OnRGBColorSelectedCallback onRGBColorSelectedCallback,
+        OnFinishCallback onFinishCallback)
+    {
+        if(gcHandleForRGBColorSelectedCallback != IntPtr.Zero ||
+           gcHandleForColorSelectedCallback != IntPtr.Zero ||
+           gcHandleForOnFinishCallback != IntPtr.Zero)
+        {
+            return;
+        }
+
+        OnEarlierIOSVersionsCallback onEarlierIOSVersionsCallback = DoNothing;
+
+		// コールバック関数をGCされないようにAllocしてハンドルを取得する。
+		gcHandleForRGBColorSelectedCallback = (IntPtr)GCHandle.Alloc(onRGBColorSelectedCallback, GCHandleType.Normal);
+		gcHandleForOnFinishCallback = (IntPtr)GCHandle.Alloc(onFinishCallback, GCHandleType.Normal);
+        gcHandleForOnEarlierIOSVersionsCallback = (IntPtr)GCHandle.Alloc(onEarlierIOSVersionsCallback, GCHandleType.Normal);
+
+		// 普通の引数 + コールバック関数のハンドル + コールバック関数を呼び出すためのstaticなメソッド
+		_CallColorPickerPlugin (
+            color.r,
+            color.g,
+            color.b,
+            color.a,
+            CallRGBColorSelectedCallback,
+            CallOnFinishCallback,
+            CallOnEarlierIOSVersionsCallback);
+	}
+
+	public static void Show (
+        Color color,
+        OnColorSelectedCallback onColorSelectedCallback,
+        OnFinishCallback onFinishCallback,
+        OnEarlierIOSVersionsCallback onEarlierIOSVersionsCallback)
+    {
+        if(gcHandleForRGBColorSelectedCallback != IntPtr.Zero ||
+           gcHandleForColorSelectedCallback != IntPtr.Zero ||
+           gcHandleForOnFinishCallback != IntPtr.Zero)
+        {
+            return;
+        }
+
+		// コールバック関数をGCされないようにAllocしてハンドルを取得する。
+		gcHandleForColorSelectedCallback = (IntPtr)GCHandle.Alloc(onColorSelectedCallback, GCHandleType.Normal);
 		gcHandleForOnFinishCallback = (IntPtr)GCHandle.Alloc(onFinishCallback, GCHandleType.Normal);
         gcHandleForOnEarlierIOSVersionsCallback = (IntPtr)GCHandle.Alloc(onEarlierIOSVersionsCallback, GCHandleType.Normal);
 
@@ -57,19 +122,22 @@ public class UIColorPickerManager {
 
 	public static void Show (
         Color color,
-        OnColorSelectedCallback colorSelectedCallback,
+        OnColorSelectedCallback onColorSelectedCallback,
         OnFinishCallback onFinishCallback)
     {
-        if(gcHandleForSelectedCallback != IntPtr.Zero || gcHandleForOnFinishCallback != IntPtr.Zero){
+        if(gcHandleForRGBColorSelectedCallback != IntPtr.Zero ||
+           gcHandleForColorSelectedCallback != IntPtr.Zero ||
+           gcHandleForOnFinishCallback != IntPtr.Zero)
+        {
             return;
         }
 
-        OnEarlierIOSVersionsCallback earlierIOSVersionsCallback = DoNothing;
+        OnEarlierIOSVersionsCallback onEarlierIOSVersionsCallback = DoNothing;
 
 		// コールバック関数をGCされないようにAllocしてハンドルを取得する。
-		gcHandleForSelectedCallback = (IntPtr)GCHandle.Alloc(colorSelectedCallback, GCHandleType.Normal);
+		gcHandleForColorSelectedCallback = (IntPtr)GCHandle.Alloc(onColorSelectedCallback, GCHandleType.Normal);
 		gcHandleForOnFinishCallback = (IntPtr)GCHandle.Alloc(onFinishCallback, GCHandleType.Normal);
-        gcHandleForOnEarlierIOSVersionsCallback = (IntPtr)GCHandle.Alloc(earlierIOSVersionsCallback, GCHandleType.Normal);
+        gcHandleForOnEarlierIOSVersionsCallback = (IntPtr)GCHandle.Alloc(onEarlierIOSVersionsCallback, GCHandleType.Normal);
 
 		// 普通の引数 + コールバック関数のハンドル + コールバック関数を呼び出すためのstaticなメソッド
 		_CallColorPickerPlugin (
@@ -86,11 +154,20 @@ public class UIColorPickerManager {
         // do nothing
     }
 
-	[AOT.MonoPInvokeCallbackAttribute(typeof(OnColorSelectedCallbackCaller))]
-	static void CallColorSelectedCallback (float r, float g, float b, float a){
-		GCHandle handle = (GCHandle)gcHandleForSelectedCallback;
-		OnColorSelectedCallback callback = handle.Target as OnColorSelectedCallback;
+	[AOT.MonoPInvokeCallbackAttribute(typeof(OnRGBColorSelectedCallbackCaller))]
+	static void CallRGBColorSelectedCallback (float r, float g, float b, float a){
+		GCHandle handle = (GCHandle)gcHandleForRGBColorSelectedCallback;
+		OnRGBColorSelectedCallback callback = handle.Target as OnRGBColorSelectedCallback;
 		callback(r, g, b, a);
+	}
+
+	[AOT.MonoPInvokeCallbackAttribute(typeof(OnColorSelectedCallbackCaller))]
+    static void CallColorSelectedCallback(float red, float green, float blue, float alpha){
+		GCHandle handle = (GCHandle)gcHandleForColorSelectedCallback;
+		OnColorSelectedCallback callback = handle.Target as OnColorSelectedCallback;
+
+        var color = new Color(red, green, blue, alpha);
+		callback(color);
 	}
 
 	[AOT.MonoPInvokeCallbackAttribute(typeof(OnFinishCallbackCaller))]
@@ -117,11 +194,17 @@ public class UIColorPickerManager {
 
     // 不要になったハンドルを解放する。
     static void CleanUpHandles(){
-        ((GCHandle)gcHandleForSelectedCallback).Free();
+        if(gcHandleForRGBColorSelectedCallback != IntPtr.Zero){
+            ((GCHandle)gcHandleForRGBColorSelectedCallback).Free();
+        }
+        if(gcHandleForColorSelectedCallback != IntPtr.Zero){
+            ((GCHandle)gcHandleForColorSelectedCallback).Free();
+        }
         ((GCHandle)gcHandleForOnFinishCallback).Free();
         ((GCHandle)gcHandleForOnEarlierIOSVersionsCallback).Free();
 
-        gcHandleForSelectedCallback = IntPtr.Zero;
+        gcHandleForRGBColorSelectedCallback = IntPtr.Zero;
+        gcHandleForColorSelectedCallback = IntPtr.Zero;
         gcHandleForOnFinishCallback = IntPtr.Zero;
         gcHandleForOnEarlierIOSVersionsCallback = IntPtr.Zero;
     }
