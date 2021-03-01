@@ -71,6 +71,7 @@ void _CallColorPickerPlugin (
     if (@available(iOS 14.0, *)) {
         UIColorPickerViewController* pickerController = [[UIColorPickerViewController alloc] init];
         pickerController.delegate = vc;
+        pickerController.selectedColor = [UIColor colorWithRed:red green:green blue:blue alpha:alpha];
         [parent presentViewController:pickerController animated:TRUE completion:nil];
 
     } else {
