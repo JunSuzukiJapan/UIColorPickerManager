@@ -16,6 +16,8 @@ public class ColorPickerManagerSample : MonoBehaviour {
             }
 
 			UIColorPickerManager.Show(color, OnSelectColor, OnFinish, OnEarlierIOSVersions);
+            // or
+			// UIColorPickerManager.Show(color, OnSelectColor, OnFinish);
 		}
 	}
 

@@ -55,6 +55,37 @@ public class UIColorPickerManager {
             CallOnEarlierIOSVersionsCallback);
 	}
 
+	public static void Show (
+        Color color,
+        OnColorSelectedCallback colorSelectedCallback,
+        OnFinishCallback onFinishCallback)
+    {
+        if(gcHandleForSelectedCallback != IntPtr.Zero || gcHandleForOnFinishCallback != IntPtr.Zero){
+            return;
+        }
+
+        OnEarlierIOSVersionsCallback earlierIOSVersionsCallback = DoNothing;
+
+		// コールバック関数をGCされないようにAllocしてハンドルを取得する。
+		gcHandleForSelectedCallback = (IntPtr)GCHandle.Alloc(colorSelectedCallback, GCHandleType.Normal);
+		gcHandleForOnFinishCallback = (IntPtr)GCHandle.Alloc(onFinishCallback, GCHandleType.Normal);
+        gcHandleForOnEarlierIOSVersionsCallback = (IntPtr)GCHandle.Alloc(earlierIOSVersionsCallback, GCHandleType.Normal);
+
+		// 普通の引数 + コールバック関数のハンドル + コールバック関数を呼び出すためのstaticなメソッド
+		_CallColorPickerPlugin (
+            color.r,
+            color.g,
+            color.b,
+            color.a,
+            CallColorSelectedCallback,
+            CallOnFinishCallback,
+            CallOnEarlierIOSVersionsCallback);
+	}
+
+    static void DoNothing(){
+        // do nothing
+    }
+
 	[AOT.MonoPInvokeCallbackAttribute(typeof(OnColorSelectedCallbackCaller))]
 	static void CallColorSelectedCallback (float r, float g, float b, float a){
 		GCHandle handle = (GCHandle)gcHandleForSelectedCallback;
@@ -68,11 +99,7 @@ public class UIColorPickerManager {
 		OnFinishCallback callback = handle.Target as OnFinishCallback;
 
 		// 不要になったハンドルを解放する。
-        ((GCHandle)gcHandleForSelectedCallback).Free();
-        ((GCHandle)gcHandleForOnFinishCallback).Free();
-
-        gcHandleForSelectedCallback = IntPtr.Zero;
-        gcHandleForOnFinishCallback = IntPtr.Zero;
+        CleanUpHandles();
 
 		callback();
 	}
@@ -83,8 +110,19 @@ public class UIColorPickerManager {
         OnEarlierIOSVersionsCallback callback = handle.Target as OnEarlierIOSVersionsCallback;
 
 		// 不要になったハンドルを解放する。
-        ((GCHandle)gcHandleForOnEarlierIOSVersionsCallback).Free();
+        CleanUpHandles();
 
         callback();
+    }
+
+    // 不要になったハンドルを解放する。
+    static void CleanUpHandles(){
+        ((GCHandle)gcHandleForSelectedCallback).Free();
+        ((GCHandle)gcHandleForOnFinishCallback).Free();
+        ((GCHandle)gcHandleForOnEarlierIOSVersionsCallback).Free();
+
+        gcHandleForSelectedCallback = IntPtr.Zero;
+        gcHandleForOnFinishCallback = IntPtr.Zero;
+        gcHandleForOnEarlierIOSVersionsCallback = IntPtr.Zero;
     }
 }
