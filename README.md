@@ -8,7 +8,7 @@ iOS14 or higher.
 
 # Unitypackage
 
-[UIColorPickerManager.unitypackage](UIColorPickerManager.unitypackage)
+[UIColorPickerManager.unitypackage](https://github.com/JunSuzukiJapan/UIColorPickerManager/raw/main/UIColorPickerManager.unitypackage)
 
 # Sample
 
