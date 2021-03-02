@@ -6,6 +6,10 @@ Unity Plugin to use UIColorPickerViewController.
 
 iOS14 or higher.
 
+# Unitypackage
+
+[UIColorPickerManager.unitypackage](UIColorPickerManager.unitypackage)
+
 # Sample
 
 ```csharp:
